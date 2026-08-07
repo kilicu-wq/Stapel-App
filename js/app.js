@@ -90,6 +90,14 @@ async function loadState() {
     }
   } catch (e) { /* no saved state yet */ }
   seedDefaults();
+
+  try {
+    const view = await window.stapelDB.get('stapel-view');
+    if (view && DAYS.some(d => d.id === view.activeDay) && WEEKS.includes(view.activeWeek)) {
+      activeDay = view.activeDay;
+      activeWeek = view.activeWeek;
+    }
+  } catch (e) { /* no saved view yet */ }
 }
 
 async function persist() {
@@ -99,6 +107,10 @@ async function persist() {
   } catch (e) {
     flashSaveNote('speichern fehlgeschlagen');
   }
+}
+
+function persistView() {
+  window.stapelDB.set('stapel-view', { activeDay, activeWeek }).catch(() => {});
 }
 
 function scheduleSave() {
@@ -267,12 +279,14 @@ function attachHandlers() {
   document.querySelectorAll('.day-tab').forEach(el => {
     el.addEventListener('click', () => {
       activeDay = el.getAttribute('data-day');
+      persistView();
       render();
     });
   });
   document.querySelectorAll('.week-tab').forEach(el => {
     el.addEventListener('click', () => {
       activeWeek = el.getAttribute('data-week');
+      persistView();
       render();
     });
   });
