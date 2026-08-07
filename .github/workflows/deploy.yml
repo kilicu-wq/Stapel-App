@@ -2,7 +2,7 @@ name: Deploy Stapel to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/pwa-offline-indexeddb-11m0u3]
   workflow_dispatch:
 
 permissions:
