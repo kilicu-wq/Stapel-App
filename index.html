@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Stapel</title>
+<meta name="description" content="Stapel — Wave-Periodisierung Trainingstracker, offline-fähig." />
+
+<meta name="theme-color" content="#17181A" />
+<meta name="background-color" content="#17181A" />
+<meta name="color-scheme" content="dark" />
+
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" href="./icons/favicon.png" />
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Stapel" />
+<meta name="mobile-web-app-capable" content="yes" />
+
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+
+<div id="app"></div>
+<div id="offline-banner" class="offline-banner hidden">Offline — Änderungen werden lokal gespeichert</div>
+
+<div id="export-overlay" class="overlay hidden">
+  <div class="overlay-card">
+    <div class="overlay-header">
+      <div class="overlay-title">Ergebnisse exportieren</div>
+      <button class="overlay-close" id="export-close">✕</button>
+    </div>
+    <pre id="export-text" class="export-pre"></pre>
+    <button class="copy-btn" id="export-copy">In Zwischenablage kopieren</button>
+  </div>
+</div>
+
+<script src="./js/db.js"></script>
+<script src="./js/app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.error('Service worker registration failed:', err);
+    });
+  });
+}
+
+function updateOnlineStatus(){
+  const banner = document.getElementById('offline-banner');
+  if (!banner) return;
+  banner.classList.toggle('hidden', navigator.onLine);
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
+</script>
+</body>
+</html>
