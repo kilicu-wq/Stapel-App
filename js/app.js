@@ -185,15 +185,14 @@ function render() {
   });
   html += `</div>`;
 
-  html += `<div class="week-tabs">`;
+  html += `<div class="week-select-wrap" style="--wc:${wc}">
+    <select id="week-select" class="week-select">`;
   WEEKS.forEach(w => {
     const type = WEEK_TYPE[w];
-    const col = WEEK_COLOR[type];
-    html += `<div class="week-tab ${w === activeWeek ? 'active' : ''}" style="--wc:${col}" data-week="${w}">
-      <span class="dot"></span>KW${w} · ${type}
-    </div>`;
+    html += `<option value="${w}" ${w === activeWeek ? 'selected' : ''}>KW${w} · ${type}</option>`;
   });
-  html += `</div>`;
+  html += `</select>
+  </div>`;
 
   html += `<div class="stack" style="--wc:${wc}">
     <div class="stack-plates">`;
@@ -312,13 +311,14 @@ function attachHandlers() {
       render();
     });
   });
-  document.querySelectorAll('.week-tab').forEach(el => {
-    el.addEventListener('click', () => {
-      activeWeek = el.getAttribute('data-week');
+  const weekSelect = document.getElementById('week-select');
+  if (weekSelect) {
+    weekSelect.addEventListener('change', () => {
+      activeWeek = weekSelect.value;
       persistView();
       render();
     });
-  });
+  }
   document.querySelectorAll('[data-action="toggle"]').forEach(el => {
     el.addEventListener('click', () => {
       const key = el.getAttribute('data-key');
