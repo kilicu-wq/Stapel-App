@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'stapel-v8';
+const CACHE_VERSION = 'stapel-v9';
 const PRECACHE = [
   './',
   './index.html',
