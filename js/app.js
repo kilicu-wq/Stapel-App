@@ -165,6 +165,49 @@ function flashSaveNote(text) {
   }
 }
 
+function downloadBackup() {
+  const payload = {
+    app: 'stapel',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    state
+  };
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `stapel-backup-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function restoreFromFile(file) {
+  let parsed;
+  try {
+    const text = await file.text();
+    parsed = JSON.parse(text);
+  } catch (e) {
+    alert('Diese Datei konnte nicht gelesen werden. Ist es eine gültige Stapel-Sicherung?');
+    return;
+  }
+
+  if (!parsed || typeof parsed !== 'object' || !parsed.state || typeof parsed.state !== 'object') {
+    alert('Diese Datei sieht nicht wie eine Stapel-Sicherung aus.');
+    return;
+  }
+
+  const ok = confirm('Aktuelle Daten in der App durch diese Sicherung ersetzen? Das kann nicht rückgängig gemacht werden.');
+  if (!ok) return;
+
+  state = Object.assign({ A: {}, B: {}, C: {} }, migrateLegacyIndexState(parsed.state));
+  seedDefaults();
+  await persist();
+  render();
+}
+
 function render() {
   const app = document.getElementById('app');
   const day = DAYS.find(d => d.id === activeDay);
@@ -181,7 +224,13 @@ function render() {
       <div class="title">STAPEL</div>
       <div class="subtitle">Wave-Periodisierung · KW31–KW35</div>
     </div>
-    <button class="export-btn" id="export-btn">Export</button>
+  </div>`;
+
+  html += `<div class="toolbar">
+    <button class="toolbar-btn" id="export-btn">Export</button>
+    <button class="toolbar-btn" id="backup-btn">Sichern</button>
+    <button class="toolbar-btn" id="restore-btn">Wiederherstellen</button>
+    <input type="file" id="restore-file-input" accept="application/json" style="display:none" />
   </div>`;
 
   html += `<div class="day-tabs">`;
@@ -311,6 +360,18 @@ async function copyExport() {
 function attachHandlers() {
   const exportBtn = document.getElementById('export-btn');
   if (exportBtn) exportBtn.addEventListener('click', openExport);
+  const backupBtn = document.getElementById('backup-btn');
+  if (backupBtn) backupBtn.addEventListener('click', downloadBackup);
+  const restoreBtn = document.getElementById('restore-btn');
+  const restoreFileInput = document.getElementById('restore-file-input');
+  if (restoreBtn && restoreFileInput) {
+    restoreBtn.addEventListener('click', () => restoreFileInput.click());
+    restoreFileInput.addEventListener('change', () => {
+      const file = restoreFileInput.files && restoreFileInput.files[0];
+      if (file) restoreFromFile(file);
+      restoreFileInput.value = '';
+    });
+  }
   document.querySelectorAll('.day-tab').forEach(el => {
     el.addEventListener('click', () => {
       activeDay = el.getAttribute('data-day');
@@ -344,7 +405,10 @@ function attachHandlers() {
       scheduleSave();
     });
     el.addEventListener('blur', () => {
-      render();
+      // Defer to the next tick so a click landing on another control at
+      // the same moment (e.g. a toolbar button right after editing a
+      // field) still reaches its target before this re-render replaces it.
+      setTimeout(render, 0);
     });
   });
 }

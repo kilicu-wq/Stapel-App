@@ -32,9 +32,15 @@ html,body{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
+  margin-bottom:12px;
+}
+.toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
   margin-bottom:16px;
 }
-.export-btn{
+.toolbar-btn{
   flex:0 0 auto;
   background:var(--bg-elev);
   border:1px solid var(--border);
@@ -47,7 +53,7 @@ html,body{
   border-radius:10px;
   cursor:pointer;
 }
-.export-btn:hover{ color:var(--text); border-color:var(--text-faint); }
+.toolbar-btn:hover{ color:var(--text); border-color:var(--text-faint); }
 
 .overlay{
   position:fixed;
