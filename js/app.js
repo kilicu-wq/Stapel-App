@@ -1,63 +1,110 @@
 (function () {
 
-const WEEKS = ['31', '32', '33', '34', '35'];
-const WEEK_TYPE = { 31: 'Volumen', 32: 'Intensität', 33: 'Volumen', 34: 'Maximum', 35: 'Volumen' };
+const WEEKS = ['36', '37', '38', '39', '40', '41', '42'];
+const WEEK_TYPE = { 36: 'Deload', 37: 'Volumen', 38: 'Intensität', 39: 'Volumen', 40: 'Maximum', 41: 'Volumen', 42: 'Deload' };
 const WEEK_COLOR = {
+  'Deload': 'var(--accent-deload)',
   'Volumen': 'var(--accent-v)',
   'Intensität': 'var(--accent-i)',
   'Maximum': 'var(--accent-m)'
 };
 
-function ex(key, name, scheme, w31v, w31e, w32v, w32e, w33v, w33e, w34v, w34e, w35v, w35e) {
-  return {
-    key, name, scheme,
-    weeks: {
-      31: { vorgabe: w31v, ergebnis: w31e || '' },
-      32: { vorgabe: w32v, ergebnis: w32e || '' },
-      33: { vorgabe: w33v, ergebnis: w33e || '' },
-      34: { vorgabe: w34v, ergebnis: w34e || '' },
-      35: { vorgabe: w35v, ergebnis: w35e || '' }
-    }
-  };
+// weeks: { '36': [vorgabe, ergebnis?], '37': [...], ... }
+function ex(key, name, scheme, weeks) {
+  const w = {};
+  Object.keys(weeks).forEach(week => {
+    const [vorgabe, ergebnis] = weeks[week];
+    w[week] = { vorgabe, ergebnis: ergebnis || '' };
+  });
+  return { key, name, scheme, weeks: w };
 }
 
 const DAYS = [
   {
     id: 'A', label: 'Push', cardio: true,
     exercises: [
-      ex('bankdruecken-lh', 'Bankdrücken (LH)', '4×8/5/8/5/8', '55×8', 'ok', '65×5', '70×5', '62,5×8', 'ok', '72,5×5', '75×5', '67,5×8', ''),
-      ex('schraegbank-kh', 'Schrägbank (KH)', '3×8/5/8/5/8', '20×8', 'ok', '24×5', '28×5', '24×8', 'ok', '30×5', 'ok', '26×8', ''),
-      ex('dips', 'Dips', '3×8/5/8/5/8', 'KG×8', 'ok', '+5kg×5', '+10kg×5', 'KG×8', 'ok', '+12,5kg×5', '+15kg×5', 'KG×8', ''),
-      ex('trizeps-pushdown', 'Trizeps Pushdown', '3×12', '20×12', 'ok', '25×12', 'ok(ish)', '22,5×12', 'ok', '27,5×12', '25×12', '25×12', ''),
-      ex('kh-flys', 'KH Flys', '3×12', '10×12', '10×12', '12×12', '14×10', '12×12', 'ok', '14×12', 'ok', '13×12', ''),
-      ex('plank', 'Plank', '3×—', '45 Sek', 'ok', '50 Sek', 'ok', '50 Sek', 'ok', '60 Sek', 'ok', '55 Sek', ''),
-      ex('beinheben', 'Beinheben', '3×12/15', '12 Wdh', 'ok', '12 Wdh', 'ok', '15 Wdh', 'ok', '15 Wdh', 'ok', '15 Wdh', '')
+      ex('bankdruecken-lh', 'Bankdrücken (LH)', '4×8/5/8/5/8', {
+        36: ['40×8'], 37: ['67,5×8'], 38: ['75×5'], 39: ['70×8'], 40: ['80×5'], 41: ['72,5×8'], 42: ['47,5×8']
+      }),
+      ex('kh-flys', 'KH Flys', '3×12', {
+        36: ['8×12'], 37: ['12×12'], 38: ['14×12'], 39: ['13×12'], 40: ['15×12'], 41: ['13×12'], 42: ['8×12']
+      }),
+      ex('schraegbank-kh', 'Schrägbank (KH)', '3×8/5/8/5/8', {
+        36: ['16×8'], 37: ['27×8'], 38: ['30×5'], 39: ['28×8'], 40: ['32×5'], 41: ['29×8'], 42: ['20×8']
+      }),
+      ex('kh-kickbacks', 'KH Kickbacks', '3×12', {
+        36: ['8×12'], 37: ['12×12'], 38: ['14×12'], 39: ['13×12'], 40: ['15×12'], 41: ['13×12'], 42: ['8×12']
+      }),
+      ex('dips', 'Dips', '3×8/5/8/5/8', {
+        36: ['KG×8'], 37: ['KG×8'], 38: ['+15kg×5'], 39: ['KG×8'], 40: ['+20kg×5'], 41: ['KG×8'], 42: ['KG×5']
+      }),
+      ex('plank', 'Plank', '3×—', {
+        36: ['30 Sek'], 37: ['55 Sek'], 38: ['60 Sek'], 39: ['55 Sek'], 40: ['65 Sek'], 41: ['60 Sek'], 42: ['40 Sek']
+      }),
+      ex('beinheben', 'Beinheben', '3×15', {
+        36: ['10 Wdh'], 37: ['15 Wdh'], 38: ['15 Wdh'], 39: ['15 Wdh'], 40: ['15 Wdh'], 41: ['15 Wdh'], 42: ['10 Wdh']
+      })
     ]
   },
   {
     id: 'B', label: 'Pull', cardio: true,
     exercises: [
-      ex('kreuzheben', 'Kreuzheben', '4×8/5/8/5/8', '65×8', 'ok', '75×5', 'ok', '70×8', 'ok', '80×5', '85×5', '75×8', ''),
-      ex('latzug-weit', 'Latzug (weit)', '4×8/5/8/5/8', '55×8', 'ok', '65×5', '70×5', '62,5×8', '65×8', '72,5×5', '80×5', '70×8', ''),
-      ex('kabelrow', 'Kabelrow', '3×8/5/8/5/8', '45×8', 'ok', '55×5', '70×5', '60×8', 'ok', '72,5×5', '80×5', '65×8', ''),
-      ex('bizeps-curl-sz', 'Bizeps Curl (SZ)', '3×8/5/8/5/8', '30×8', 'ok', '35×5', '60×5', '50×8', 'ok', '62,5×5', '70×5', '57,5×8', ''),
-      ex('hammer-curl', 'Hammer Curl', '3×12', '14×12', 'ok', '16×12', '', '14×12', 'ok', '18×12', '', '16×12', ''),
-      ex('reverse-flys', 'Reverse Flys', '2×12', '10×12', 'ok', '12×12', '', '10×12', 'ok', '13×12', '14×10', '11×12', ''),
-      ex('crunches-kabel', 'Crunches (Kabel)', '3×15', '50×15', 'ok', '65×15', '70×15', '60×15', 'ok', '75×15', '75×10', '60×15', '')
+      ex('kreuzheben', 'Kreuzheben (LH)', '4×8/5/8/5/8', {
+        36: ['45×8'], 37: ['77,5×8'], 38: ['85×5'], 39: ['80×8'], 40: ['90×5'], 41: ['82,5×8'], 42: ['55×8']
+      }),
+      ex('reverse-flys', 'Reverse Flys (KH)', '2×12', {
+        36: ['6×12'], 37: ['10×12'], 38: ['12×12'], 39: ['11×12'], 40: ['13×12'], 41: ['11×12'], 42: ['7×12']
+      }),
+      ex('latzug-weit', 'Latzug (weit)', '4×8/5/8/5/8', {
+        36: ['40×8'], 37: ['72,5×8'], 38: ['80×5'], 39: ['75×8'], 40: ['85×5'], 41: ['77,5×8'], 42: ['50×8']
+      }),
+      ex('bizeps-curl-sz', 'Bizeps Curl (SZ)', '3×8/5/8/5/8', {
+        36: ['37,5×8'], 37: ['60×8'], 38: ['70×5'], 39: ['65×8'], 40: ['75×5'], 41: ['70×8'], 42: ['45×8']
+      }),
+      ex('pendlay-row-lh', 'Pendlay Row (LH)', '3×8/5/8/5/8', {
+        36: ['35×8'], 37: ['55×8'], 38: ['62,5×5'], 39: ['57,5×8'], 40: ['67,5×5'], 41: ['60×8'], 42: ['40×8']
+      }),
+      ex('hammer-curl', 'Hammer Curl (KH)', '3×12', {
+        36: ['10×12'], 37: ['16×12'], 38: ['18×12'], 39: ['16×12'], 40: ['18×12'], 41: ['17×12'], 42: ['10×12']
+      }),
+      ex('kh-rudern-einarmig', 'KH Rudern einarmig', '3×8/5/8/5/8', {
+        36: ['12×8'], 37: ['20×8'], 38: ['24×5'], 39: ['22×8'], 40: ['26×5'], 41: ['24×8'], 42: ['14×8']
+      }),
+      ex('crunches-kabel', 'Crunches (Kabel)', '3×15', {
+        36: ['37,5×15'], 37: ['60×15'], 38: ['70×15'], 39: ['65×15'], 40: ['75×15'], 41: ['67,5×15'], 42: ['40×15']
+      })
     ]
   },
   {
     id: 'C', label: 'Schultern + Beine', cardio: true,
     exercises: [
-      ex('beinpresse', 'Beinpresse', '4×8/5/8/5/8', '230×8', 'ok', '270×5', '290×5', '255×8', '260×8', '305×5', '310×5', '270×8', ''),
-      ex('schulterdruecken-lh', 'Schulterdrücken (LH)', '4×8/5/8/5/8', '20×8', '17,5×8', '25×5', 'ok', '20×8', 'ok', '27,5×5', 'ok', '22,5×8', ''),
-      ex('beinbeuger', 'Beinbeuger', '3×8/5/8/5/8', '35×8', 'ok', '40×5', '50×5', '42,5×8', '45×8', '52,5×5', '55×5', '45×8', ''),
-      ex('seitheben-kh', 'Seitheben (KH)', '2×12', '10×12', 'ok', '12×12', '12×10', '10×12', 'ok', '12×12', 'ok', '12×12', ''),
-      ex('ausfallschritte', 'Ausfallschritte', '3×10/Seite', '10×10', 'ok', '12×10', 'ok', '10×10', 'ok', '14×10', 'ok', '12×10', ''),
-      ex('frontheben-kh', 'Frontheben (KH)', '2×12', '10×12', 'ok', '12×12', '', '10×12', 'ok', '14×12', '12×12', '12×12', ''),
-      ex('wadenheben', 'Wadenheben', '3×15', '27,5×15', 'ok', '30×15', '35×15', '30×15', 'ok', '37,5×15', '40×15', '37,5×15', ''),
-      ex('nacken-kh', 'Nacken KH', '2×12', '26×12', 'ok', '28×12', '30×12', '28×12', 'ok', '32×12', '34×12', '32×12', ''),
-      ex('russian-twist', 'Russian Twist', '3×15/Seite', '8×15', 'ok', '10×15', '5×15', '6×15', 'ok', '8×15', '10×15', '9×15', '')
+      ex('kniebeugen-lh', 'Kniebeugen (LH)', '4×8/5/8/5/8', {
+        36: ['35×8'], 37: ['55×8'], 38: ['65×5'], 39: ['57,5×8'], 40: ['70×5'], 41: ['60×8'], 42: ['40×8']
+      }),
+      ex('seitheben-kh', 'Seitheben (KH)', '3×12', {
+        36: ['8×12'], 37: ['12×12'], 38: ['14×12'], 39: ['12×12'], 40: ['14×12'], 41: ['12×12'], 42: ['8×12']
+      }),
+      ex('rum-kreuzheben-lh', 'Rum. Kreuzheben (LH)', '3×8/5/8/5/8', {
+        36: ['37,5×8'], 37: ['60×8'], 38: ['70×5'], 39: ['62,5×8'], 40: ['75×5'], 41: ['65×8'], 42: ['42,5×8']
+      }),
+      ex('kh-schulterdruecken', 'KH Schulterdrücken', '4×8/5/8/5/8', {
+        36: ['12×8'], 37: ['18×8'], 38: ['22×5'], 39: ['20×8'], 40: ['25×5'], 41: ['21×8'], 42: ['15×8']
+      }),
+      ex('beinbeuger', 'Beinbeuger sitzend', '3×8/5/8/5/8', {
+        36: ['30×8'], 37: ['50×8'], 38: ['55×5'], 39: ['52,5×8'], 40: ['60×5'], 41: ['55×8'], 42: ['37,5×8']
+      }),
+      ex('frontheben-kh', 'Frontheben (KH)', '2×12', {
+        36: ['6×12'], 37: ['10×12'], 38: ['12×12'], 39: ['10×12'], 40: ['12×12'], 41: ['11×12'], 42: ['7×12']
+      }),
+      ex('hip-thrust-lh', 'Hip Thrust (LH)', '3×8/5/8/5/8', {
+        36: ['37,5×8'], 37: ['60×8'], 38: ['70×5'], 39: ['62,5×8'], 40: ['75×5'], 41: ['65×8'], 42: ['42,5×8']
+      }),
+      ex('ausfallschritte', 'Ausfallschritte (KH)', '3×10/Seite', {
+        36: ['8×10'], 37: ['12×10'], 38: ['14×10'], 39: ['12×10'], 40: ['16×10'], 41: ['13×10'], 42: ['8×10']
+      }),
+      ex('wadenheben', 'Wadenheben', '3×15', {
+        36: ['22,5×15'], 37: ['35×15'], 38: ['40×15'], 39: ['37,5×15'], 40: ['42,5×15'], 41: ['40×15'], 42: ['25×15']
+      })
     ]
   }
 ];
@@ -94,7 +141,7 @@ function migrateLegacyIndexState(raw) {
 // ---- state ----
 let state = { A: {}, B: {}, C: {} }; // state[day][week][exerciseKey] = {ergebnis, done}
 let activeDay = 'A';
-let activeWeek = '32';
+let activeWeek = '36';
 let saveTimeout = null;
 
 function seedDefaults() {
@@ -222,7 +269,7 @@ function render() {
   html += `<div class="header">
     <div>
       <div class="title">STAPEL</div>
-      <div class="subtitle">Wave-Periodisierung · KW31–KW35</div>
+      <div class="subtitle">Wave-Periodisierung · Block 3 · KW36–KW42</div>
     </div>
   </div>`;
 
