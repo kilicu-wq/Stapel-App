@@ -13,6 +13,7 @@
   --accent-m:#C9A050;
   --accent-deload:#8B85A6;
   --accent-done:#6B9E5A;
+  --accent-deviation:#CC5B8C;
   --radius:14px;
 }
 *{box-sizing:border-box;}
@@ -256,7 +257,7 @@ html,body{
   border-color:var(--accent-done);
 }
 .card.done.deviated{
-  border-color:var(--accent-i);
+  border-color:var(--accent-deviation);
 }
 .card-top{
   display:flex;
@@ -295,8 +296,8 @@ html,body{
   color:var(--bg);
 }
 .check-btn.checked.deviated{
-  background:var(--accent-i);
-  border-color:var(--accent-i);
+  background:var(--accent-deviation);
+  border-color:var(--accent-deviation);
 }
 
 .card-body{
