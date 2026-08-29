@@ -366,7 +366,11 @@ function buildExportText() {
         const st = state[day.id][w][exo.key];
         const type = WEEK_TYPE[w];
         const typeText = type === 'Deload' ? 'Deload – 2 Sets' : type;
-        const erg = (st.ergebnis && st.ergebnis.trim()) ? st.ergebnis : '–';
+        const hasErgebnis = !!(st.ergebnis && st.ergebnis.trim());
+        // Spell out "matched the target" instead of a bare dash, so the
+        // export reads unambiguously as fulfilled even without cross-
+        // checking the [✓] marker (e.g. when pasted into another chat).
+        const erg = hasErgebnis ? st.ergebnis : (st.done ? 'wie Vorgabe' : '–');
         const mark = st.done ? '✓' : ' ';
         lines.push('  KW' + w + ' (' + typeText + ') [' + mark + ']  Vorgabe: ' + wdata.vorgabe + '   Ergebnis: ' + erg);
       });
