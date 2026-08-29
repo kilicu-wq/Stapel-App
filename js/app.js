@@ -292,7 +292,8 @@ function render() {
     <select id="week-select" class="week-select">`;
   WEEKS.forEach(w => {
     const type = WEEK_TYPE[w];
-    html += `<option value="${w}" ${w === activeWeek ? 'selected' : ''}>KW${w} · ${type}</option>`;
+    const label = type === 'Deload' ? `KW${w} Deload – 2 Sets` : `KW${w} · ${type}`;
+    html += `<option value="${w}" ${w === activeWeek ? 'selected' : ''}>${label}</option>`;
   });
   html += `</select>
   </div>`;
@@ -308,13 +309,19 @@ function render() {
     const st = state[day.id][activeWeek][exo.key];
     const wdata = exo.weeks[activeWeek];
     const hasTarget = !!wdata.vorgabe;
-    html += `<div class="card ${st.done ? 'done' : ''}" data-key="${exo.key}">
+    // Green = done, hit the Vorgabe exactly (no note needed). Orange =
+    // done but with a recorded Ergebnis, i.e. a deviation from Vorgabe.
+    const hasErgebnis = !!(st.ergebnis && st.ergebnis.trim());
+    const deviated = st.done && hasErgebnis;
+    const cardClass = st.done ? (deviated ? 'done deviated' : 'done') : '';
+    const checkClass = st.done ? (deviated ? 'checked deviated' : 'checked') : '';
+    html += `<div class="card ${cardClass}" data-key="${exo.key}">
       <div class="card-top">
         <div>
           <div class="ex-name">${exo.name}</div>
           <div class="ex-scheme">${exo.scheme}</div>
         </div>
-        <button class="check-btn ${st.done ? 'checked' : ''}" data-action="toggle" data-key="${exo.key}">✓</button>
+        <button class="check-btn ${checkClass}" data-action="toggle" data-key="${exo.key}">✓</button>
       </div>
       <div class="card-body">
         <div class="vorgabe-box" style="--wc:${wc}">
@@ -358,9 +365,10 @@ function buildExportText() {
         if (!wdata.vorgabe) { return; }
         const st = state[day.id][w][exo.key];
         const type = WEEK_TYPE[w];
+        const typeText = type === 'Deload' ? 'Deload – 2 Sets' : type;
         const erg = (st.ergebnis && st.ergebnis.trim()) ? st.ergebnis : '–';
         const mark = st.done ? '✓' : ' ';
-        lines.push('  KW' + w + ' (' + type + ') [' + mark + ']  Vorgabe: ' + wdata.vorgabe + '   Ergebnis: ' + erg);
+        lines.push('  KW' + w + ' (' + typeText + ') [' + mark + ']  Vorgabe: ' + wdata.vorgabe + '   Ergebnis: ' + erg);
       });
       lines.push('');
     });

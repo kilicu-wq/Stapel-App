@@ -255,6 +255,9 @@ html,body{
 .card.done{
   border-color:var(--accent-done);
 }
+.card.done.deviated{
+  border-color:var(--accent-i);
+}
 .card-top{
   display:flex;
   justify-content:space-between;
@@ -290,6 +293,10 @@ html,body{
   background:var(--accent-done);
   border-color:var(--accent-done);
   color:var(--bg);
+}
+.check-btn.checked.deviated{
+  background:var(--accent-i);
+  border-color:var(--accent-i);
 }
 
 .card-body{
