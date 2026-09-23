@@ -149,6 +149,10 @@ let state = { A: {}, B: {}, C: {} }; // state[day][week][exerciseKey] = {ergebni
 let activeDay = 'A';
 let activeWeek = '36';
 let saveTimeout = null;
+// Custom exercise order per day, chosen by the user (array of exercise
+// keys). null means "use the built-in order from DAYS". Stored separately
+// from `state` since it isn't week-specific.
+let exerciseOrder = { A: null, B: null, C: null };
 
 function seedDefaults() {
   DAYS.forEach(day => {
@@ -167,8 +171,49 @@ function seedDefaults() {
           state[day.id][w][exo.key] = { ergebnis: orig, done: !!orig };
         }
       });
+      if (state[day.id][w].__notes === undefined) {
+        state[day.id][w].__notes = '';
+      }
     });
   });
+}
+
+// Returns this day's exercises in the user's chosen order, falling back to
+// the built-in DAYS order. Exercises removed from a future plan update just
+// drop out; newly added ones are appended at the end.
+function getOrderedExercises(day) {
+  const customOrder = exerciseOrder[day.id];
+  if (!customOrder || !customOrder.length) return day.exercises;
+  const byKey = {};
+  day.exercises.forEach(exo => { byKey[exo.key] = exo; });
+  const ordered = [];
+  customOrder.forEach(key => {
+    if (byKey[key]) { ordered.push(byKey[key]); delete byKey[key]; }
+  });
+  day.exercises.forEach(exo => {
+    if (byKey[exo.key]) ordered.push(exo);
+  });
+  return ordered;
+}
+
+function persistOrder() {
+  window.stapelDB.set('stapel-order', exerciseOrder).catch(() => {});
+}
+
+function moveExercise(key, delta) {
+  const day = DAYS.find(d => d.id === activeDay);
+  const keys = getOrderedExercises(day).map(exo => exo.key);
+  const idx = keys.indexOf(key);
+  const newIdx = idx + delta;
+  if (idx === -1 || newIdx < 0 || newIdx >= keys.length) return;
+  [keys[idx], keys[newIdx]] = [keys[newIdx], keys[idx]];
+  exerciseOrder[activeDay] = keys;
+  persistOrder();
+  render();
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 async function loadState() {
@@ -187,6 +232,13 @@ async function loadState() {
       activeWeek = view.activeWeek;
     }
   } catch (e) { /* no saved view yet */ }
+
+  try {
+    const savedOrder = await window.stapelDB.get('stapel-order');
+    if (savedOrder) {
+      exerciseOrder = Object.assign({ A: null, B: null, C: null }, savedOrder);
+    }
+  } catch (e) { /* no saved order yet */ }
 }
 
 async function persist() {
@@ -223,7 +275,8 @@ function downloadBackup() {
     app: 'stapel',
     version: 1,
     exportedAt: new Date().toISOString(),
-    state
+    state,
+    order: exerciseOrder
   };
   const dateStr = new Date().toISOString().slice(0, 10);
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -256,6 +309,10 @@ async function restoreFromFile(file) {
   if (!ok) return;
 
   state = Object.assign({ A: {}, B: {}, C: {} }, migrateLegacyIndexState(parsed.state));
+  if (parsed.order && typeof parsed.order === 'object') {
+    exerciseOrder = Object.assign({ A: null, B: null, C: null }, parsed.order);
+    persistOrder();
+  }
   seedDefaults();
   await persist();
   render();
@@ -267,8 +324,9 @@ function render() {
   const weekType = WEEK_TYPE[activeWeek];
   const wc = WEEK_COLOR[weekType];
 
-  const total = day.exercises.length;
-  const doneCount = day.exercises.filter(exo => state[day.id][activeWeek][exo.key].done).length;
+  const exercises = getOrderedExercises(day);
+  const total = exercises.length;
+  const doneCount = exercises.filter(exo => state[day.id][activeWeek][exo.key].done).length;
 
   let html = '';
 
@@ -311,7 +369,7 @@ function render() {
   }
   html += `</div><div class="stack-label">${doneCount}/${total}</div></div>`;
 
-  day.exercises.forEach(exo => {
+  exercises.forEach((exo, idx) => {
     const st = state[day.id][activeWeek][exo.key];
     const wdata = exo.weeks[activeWeek];
     const hasTarget = !!wdata.vorgabe;
@@ -321,13 +379,21 @@ function render() {
     const deviated = st.done && hasErgebnis;
     const cardClass = st.done ? (deviated ? 'done deviated' : 'done') : '';
     const checkClass = st.done ? (deviated ? 'checked deviated' : 'checked') : '';
+    const isFirst = idx === 0;
+    const isLast = idx === exercises.length - 1;
     html += `<div class="card ${cardClass}" data-key="${exo.key}">
       <div class="card-top">
         <div>
           <div class="ex-name">${exo.name}</div>
           <div class="ex-scheme">${exo.scheme}</div>
         </div>
-        <button class="check-btn ${checkClass}" data-action="toggle" data-key="${exo.key}">✓</button>
+        <div class="card-controls">
+          <div class="reorder-btns">
+            <button class="reorder-btn" data-action="move-up" data-key="${exo.key}" ${isFirst ? 'disabled' : ''}>▲</button>
+            <button class="reorder-btn" data-action="move-down" data-key="${exo.key}" ${isLast ? 'disabled' : ''}>▼</button>
+          </div>
+          <button class="check-btn ${checkClass}" data-action="toggle" data-key="${exo.key}">✓</button>
+        </div>
       </div>
       <div class="card-body">
         <div class="vorgabe-box" style="--wc:${wc}">
@@ -349,6 +415,12 @@ function render() {
     </div>`;
   }
 
+  const notesValue = state[day.id][activeWeek].__notes || '';
+  html += `<div class="notes-box">
+    <div class="notes-label">Notizen</div>
+    <textarea class="notes-input" id="notes-input" placeholder="z.B. Cardio-Minuten, Auffälligkeiten...">${escapeHtml(notesValue)}</textarea>
+  </div>`;
+
   html += `<div class="save-note" id="save-note"></div>`;
 
   app.innerHTML = html;
@@ -364,7 +436,14 @@ function buildExportText() {
   lines.push('');
   DAYS.forEach(day => {
     lines.push('== ' + day.id + ' — ' + day.label + ' ==');
-    day.exercises.forEach(exo => {
+    WEEKS.forEach(w => {
+      const note = state[day.id][w] && state[day.id][w].__notes;
+      if (note && note.trim()) {
+        lines.push('  Notiz KW' + w + ': ' + note.trim());
+      }
+    });
+    lines.push('');
+    getOrderedExercises(day).forEach(exo => {
       lines.push(exo.name + '  (' + exo.scheme + ')');
       WEEKS.forEach(w => {
         const wdata = exo.weeks[w];
@@ -476,6 +555,19 @@ function attachHandlers() {
       setTimeout(render, 0);
     });
   });
+  document.querySelectorAll('[data-action="move-up"]').forEach(el => {
+    el.addEventListener('click', () => moveExercise(el.getAttribute('data-key'), -1));
+  });
+  document.querySelectorAll('[data-action="move-down"]').forEach(el => {
+    el.addEventListener('click', () => moveExercise(el.getAttribute('data-key'), 1));
+  });
+  const notesInput = document.getElementById('notes-input');
+  if (notesInput) {
+    notesInput.addEventListener('input', () => {
+      state[activeDay][activeWeek].__notes = notesInput.value;
+      scheduleSave();
+    });
+  }
 }
 
 async function init() {

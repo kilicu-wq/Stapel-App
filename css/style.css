@@ -278,6 +278,33 @@ html,body{
   color:var(--text-faint);
   margin-top:2px;
 }
+.card-controls{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.reorder-btns{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.reorder-btn{
+  width:22px;height:22px;
+  padding:0;
+  border-radius:5px;
+  border:1px solid var(--border);
+  background:var(--bg-elev-2);
+  color:var(--text-dim);
+  font-size:9px;
+  line-height:1;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.reorder-btn:disabled{
+  opacity:0.3;
+  cursor:default;
+}
 .check-btn{
   flex:0 0 auto;
   width:32px;height:32px;
@@ -372,6 +399,37 @@ html,body{
   color:var(--text-dim);
 }
 .cardio-label b{color:var(--text);}
+
+.notes-box{
+  background:var(--bg-elev);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:12px 14px;
+  margin-bottom:10px;
+}
+.notes-label{
+  font-size:9px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--text-faint);
+  margin-bottom:6px;
+}
+.notes-input{
+  width:100%;
+  min-height:56px;
+  background:var(--bg-elev-2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  line-height:1.4;
+  resize:vertical;
+  outline:none;
+}
+.notes-input:focus{ border-color:var(--accent-v); }
+.notes-input::placeholder{ color:var(--text-faint); }
 
 .save-note{
   text-align:center;
