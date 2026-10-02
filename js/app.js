@@ -9,43 +9,63 @@ const WEEK_COLOR = {
   'Maximum': 'var(--accent-m)'
 };
 
-// weeks: { '36': [vorgabe, ergebnis?], '37': [...], ... }
+// weeks: { '36': [vorgabe, ergebnis?, doneOverride?], '37': [...], ... }
+// doneOverride lets a week be seeded as "done" without an Ergebnis text
+// (i.e. the exercise was simply checked off, matching the Vorgabe exactly -
+// shows green, not the pink "deviation" styling an Ergebnis text triggers).
+// Without it, done defaults to whether an Ergebnis was given.
 function ex(key, name, scheme, weeks) {
   const w = {};
   Object.keys(weeks).forEach(week => {
-    const [vorgabe, ergebnis] = weeks[week];
-    w[week] = { vorgabe, ergebnis: ergebnis || '' };
+    const [vorgabe, ergebnis, doneOverride] = weeks[week];
+    const erg = ergebnis || '';
+    w[week] = { vorgabe, ergebnis: erg, doneDefault: doneOverride !== undefined ? doneOverride : !!erg };
   });
   return { key, name, scheme, weeks: w };
 }
+
+// Default notes carried over from a prior backup, restored alongside the
+// Ergebnis defaults below (see seedDefaults).
+const NOTES_DEFAULTS = {
+  A: {
+    40: 'Wenn Vorgabe übererfüllt: nur letzter Satz mit dem angegebenen Gewicht. Außer KH Flys durchgängig 3 Sets 16x10\nBrust LH: mit Spot wäre vermutlich 85kg gegangen.\nPlank mit Bauchmuskel Maschine ersetzt: 35kg max'
+  },
+  B: {
+    39: 'Zu wenig geschlafen und zu wenig Kohlenhydrate zu Mittag gegessen. Nach den ersten 4-5 Übungen hat die Energie merklich nachgelassen.',
+    40: 'Keine Energie mehr für Preacher Curls. Eventuell mit Bizeps Curl SZ tauschen.'
+  },
+  C: {
+    39: 'Frontheben KH stabilisieren & Gewicht vorerst nicht erhöhen.\nKurz geschlafen und in der Früh trainieren gegangen nach einem normalen Frühstück. Wenig Energie gefühlt.'
+  }
+};
 
 const DAYS = [
   {
     id: 'A', label: 'Push', cardio: true,
     exercises: [
       ex('bankdruecken-lh', 'Bankdrücken (LH)', '4×8/5/8/5/8', {
-        36: ['40×8'], 37: ['67,5×8', '30kg KH×8'], 38: ['75×5', '77,5×5'], 39: ['70×8'], 40: ['82,5×5', 'ok'], 41: ['72,5×8'], 42: ['47,5×8']
+        36: ['40×8', '', true], 37: ['67,5×8', '30kg KH×8'], 38: ['75×5', '77,5×5'], 39: ['70×8', '', true], 40: ['82,5×5', '', true], 41: ['72,5×8'], 42: ['47,5×8']
       }),
       ex('kh-kickbacks', 'KH Kickbacks', '3×12', {
-        36: ['8×12'], 37: ['12×12', 'ok'], 38: ['14×12', 'ok'], 39: ['13×12'], 40: ['15×12', '18×10'], 41: ['16×12'], 42: ['8×12']
+        36: ['8×12', '', true], 37: ['12×12', '', true], 38: ['14×12', '', true], 39: ['13×12', '12×12'], 40: ['15×12', '18×10'], 41: ['16×12'], 42: ['8×12']
       }),
       ex('schraegbank-kh', 'Schrägbank (KH)', '3×8/5/8/5/8', {
-        36: ['16×8'], 37: ['27×8', '26×7'], 38: ['28×5', '30×5'], 39: ['26×8'], 40: ['32×5', '34×5'], 41: ['30×8'], 42: ['18×8']
+        36: ['16×8', '', true], 37: ['27×8', '26×7'], 38: ['28×5', '30×5'], 39: ['26×8', '28×8'], 40: ['32×5', '34×5'], 41: ['30×8'], 42: ['18×8']
       }),
       ex('trizeps-overhead-extension-kh', 'Trizeps Overhead Extension (KH)', '3×12', {
-        36: ['10×12'], 37: ['14×12'], 38: ['16×12', '22×12'], 39: ['20×12'], 40: ['24×12', '26×10'], 41: ['22×12'], 42: ['12×12']
+        36: ['10×12'], 37: ['14×12'], 38: ['16×12', '22×12'], 39: ['20×12', '', true], 40: ['24×12', '26×10'], 41: ['22×12'], 42: ['12×12']
       }),
       ex('dips', 'Dips', '3×8/5/8/5/8', {
-        36: ['KG×8'], 37: ['KG×8', 'ok'], 38: ['+15kg×5', 'ok'], 39: ['KG×8'], 40: ['+20kg×5', 'ok'], 41: ['KG×8'], 42: ['KG×5']
+        36: ['KG×8', '', true], 37: ['KG×8', '', true], 38: ['+15kg×5', '', true], 39: ['KG×8', '', true], 40: ['+20kg×5', '', true], 41: ['KG×8'], 42: ['KG×5']
       }),
       ex('kh-flys', 'KH Flys', '3×10', {
-        36: ['8×12'], 37: ['12×12', 'ok'], 38: ['14×12', 'ok'], 39: ['13×12'], 40: ['15×12', '16×10'], 41: ['16×10'], 42: ['8×12']
+        36: ['8×12', '', true], 37: ['12×12', '', true], 38: ['14×12', '', true], 39: ['13×12', '12×12'], 40: ['15×12', '16×10'], 41: ['16×10'], 42: ['8×12']
       }),
       ex('bauchmuskel-maschine', 'Bauchmuskel Maschine', '3×15', {
         36: [''], 37: [''], 38: [''], 39: [''], 40: [''], 41: ['30×15'], 42: ['']
       }),
       ex('beinheben', 'Beinheben', '3×15', {
-        36: ['10 Wdh'], 37: ['15 Wdh', 'ok'], 38: ['15 Wdh', 'ok'], 39: ['15 Wdh'], 40: ['15 Wdh', 'ok'], 41: ['15 Wdh'], 42: ['10 Wdh']
+        36: ['10 Wdh', '', true], 37: ['15 Wdh', '', true], 38: ['15 Wdh', '', true], 39: ['15 Wdh', '', true], 40: ['15 Wdh', '', true], 41: ['15 Wdh'], 42: ['10 Wdh']
       })
     ]
   },
@@ -53,28 +73,28 @@ const DAYS = [
     id: 'B', label: 'Pull', cardio: true,
     exercises: [
       ex('kreuzheben', 'Kreuzheben (LH)', '4×8/5/8/5/8', {
-        36: ['45×8'], 37: ['77,5×8', '80×8'], 38: ['85×5', '90×5'], 39: ['82,5×8'], 40: ['95×5', '100×5'], 41: ['90×8'], 42: ['55×8']
+        36: ['45×8', '', true], 37: ['77,5×8', '80×8'], 38: ['85×5', '90×5'], 39: ['82,5×8', '85×8'], 40: ['95×5', '100×5'], 41: ['90×8'], 42: ['55×8']
       }),
       ex('latzug-weit', 'Latzug (weit)', '4×8/5/8/5/8', {
-        36: ['40×8'], 37: ['72,5×8', '75×8'], 38: ['82,5×5', '85×5'], 39: ['77,5×8'], 40: ['90×5', 'ok'], 41: ['82,5×8'], 42: ['50×8']
+        36: ['40×8', '', true], 37: ['72,5×8', '75×8'], 38: ['82,5×5', '85×5'], 39: ['77,5×8', '', true], 40: ['90×5', '', true], 41: ['82,5×8'], 42: ['50×8']
       }),
       ex('preacher-curl-kh', 'Preacher Curl (KH)', '3×12', {
-        36: ['10×12'], 37: [''], 38: [''], 39: ['14×12'], 40: ['16×12', '2×12×10'], 41: ['10×12'], 42: ['10×12']
+        36: ['10×12'], 37: [''], 38: [''], 39: ['14×12', '10×12'], 40: ['16×12', '2×12×10'], 41: ['10×12'], 42: ['10×12']
       }),
       ex('kh-rudern-einarmig', 'KH Rudern einarmig', '3×8/5/8/5/8', {
-        36: ['12×8'], 37: ['20×8', '26×8'], 38: ['30×5', '34×5'], 39: ['30×8'], 40: ['37,5×5', '38×5'], 41: ['32,5×8'], 42: ['16×8']
+        36: ['12×8', '', true], 37: ['20×8', '26×8'], 38: ['30×5', '34×5'], 39: ['30×8', '32×8'], 40: ['37,5×5', '38×5'], 41: ['32,5×8'], 42: ['16×8']
       }),
       ex('hammer-curl', 'Hammer Curl (KH)', '3×12', {
-        36: ['10×12'], 37: ['16×12', 'ok'], 38: ['18×12', 'ok'], 39: ['16×12'], 40: ['18×12', 'ok'], 41: ['17×12'], 42: ['10×12']
+        36: ['10×12', '', true], 37: ['16×12', '', true], 38: ['18×12', '', true], 39: ['16×12', '', true], 40: ['18×12', '', true], 41: ['17×12'], 42: ['10×12']
       }),
       ex('reverse-flys', 'Reverse Flys (KH)', '2×12', {
-        36: ['6×12'], 37: ['10×12', 'ok'], 38: ['12×12', 'ok'], 39: ['11×12'], 40: ['13×12', '12×12'], 41: ['11×12'], 42: ['7×12']
+        36: ['6×12', '', true], 37: ['10×12', '', true], 38: ['12×12', '', true], 39: ['11×12', '10×12'], 40: ['13×12', '12×12'], 41: ['11×12'], 42: ['7×12']
       }),
       ex('bizeps-curl-sz', 'Bizeps Curl (SZ)', '3×8/5/8/5/8', {
-        36: ['37,5×8'], 37: ['60×8', 'ok'], 38: ['70×5', '75×5'], 39: ['67,5×8'], 40: ['80×5', 'ok'], 41: ['72,5×8'], 42: ['45×8']
+        36: ['37,5×8', '', true], 37: ['60×8', '', true], 38: ['70×5', '75×5'], 39: ['67,5×8', '70×8'], 40: ['80×5', '', true], 41: ['72,5×8'], 42: ['45×8']
       }),
       ex('crunches-kabel', 'Crunches (Kabel)', '3×15', {
-        36: ['37,5×15'], 37: ['60×15', 'ok'], 38: ['70×15', '70×10'], 39: ['65×15'], 40: ['70×15', '70×8'], 41: ['60×15'], 42: ['40×15']
+        36: ['37,5×15', '', true], 37: ['60×15', '', true], 38: ['70×15', '70×10'], 39: ['65×15', '65×10'], 40: ['70×15', '70×8'], 41: ['60×15'], 42: ['40×15']
       })
     ]
   },
@@ -82,34 +102,34 @@ const DAYS = [
     id: 'C', label: 'Schultern + Beine', cardio: true,
     exercises: [
       ex('kniebeugen-lh', 'Kniebeugen (LH)', '4×8/5/8/5/8', {
-        36: ['35×8'], 37: ['55×8', '60×8'], 38: ['70×5', '72,5×5'], 39: ['65×8'], 40: ['77,5×5', 'ok'], 41: ['67,5×8'], 42: ['40×8']
+        36: ['35×8', '', true], 37: ['55×8', '60×8'], 38: ['70×5', '72,5×5'], 39: ['65×8', '', true], 40: ['77,5×5', '', true], 41: ['67,5×8'], 42: ['40×8']
       }),
       ex('seitheben-kh', 'Seitheben (KH)', '2×12', {
-        36: ['8×12'], 37: ['12×12', 'ok'], 38: ['14×12', 'ok'], 39: ['12×12'], 40: ['14×12', '14×10'], 41: ['12×12'], 42: ['8×12']
+        36: ['8×12', '', true], 37: ['12×12', '', true], 38: ['14×12', '', true], 39: ['12×12', '', true], 40: ['14×12', '14×10'], 41: ['12×12'], 42: ['8×12']
       }),
       ex('rum-kreuzheben-lh', 'Rum. Kreuzheben (LH)', '3×8/5/8/5/8', {
-        36: ['37,5×8'], 37: ['60×8', 'ok'], 38: ['70×5', 'ok'], 39: ['62,5×8'], 40: ['75×5', 'ok'], 41: ['65×8'], 42: ['42,5×8']
+        36: ['37,5×8', '', true], 37: ['60×8', '', true], 38: ['70×5', '', true], 39: ['62,5×8', '65×8'], 40: ['75×5', '', true], 41: ['65×8'], 42: ['42,5×8']
       }),
       ex('kh-schulterdruecken', 'KH Schulterdrücken', '4×8/5/8/5/8', {
-        36: ['12×8'], 37: ['18×8', '22×8'], 38: ['26×5', 'ok'], 39: ['24×8'], 40: ['28×5', '30×5'], 41: ['26×8'], 42: ['15×8']
+        36: ['12×8', '', true], 37: ['18×8', '22×8'], 38: ['26×5', '', true], 39: ['24×8', '', true], 40: ['28×5', '30×5'], 41: ['26×8'], 42: ['15×8']
       }),
       ex('beinbeuger', 'Beinbeuger sitzend', '3×8/5/8/5/8', {
-        36: ['30×8'], 37: ['50×8', '25×8'], 38: ['30×5', '35×5'], 39: ['32,5×8'], 40: ['40×5', '45×5'], 41: ['40×8'], 42: ['20×8']
+        36: ['30×8', '', true], 37: ['50×8', '25×8'], 38: ['30×5', '35×5'], 39: ['32,5×8', '35×8'], 40: ['40×5', '45×5'], 41: ['40×8'], 42: ['20×8']
       }),
       ex('frontheben-kh', 'Frontheben (KH)', '2×12', {
-        36: ['6×12'], 37: ['10×12', 'ok'], 38: ['12×12', 'ok'], 39: ['10×12'], 40: ['12×12', '12×10'], 41: ['11×12'], 42: ['7×12']
+        36: ['6×12', '', true], 37: ['10×12', '', true], 38: ['12×12', '', true], 39: ['10×12', '', true], 40: ['12×12', '12×10'], 41: ['11×12'], 42: ['7×12']
       }),
       ex('hip-thrust-lh', 'Hip Thrust (LH)', '3×8/5/8/5/8', {
-        36: ['37,5×8'], 37: ['60×8', 'ok'], 38: ['70×5', 'ok'], 39: ['62,5×8'], 40: ['75×5', 'ok'], 41: ['65×8'], 42: ['42,5×8']
+        36: ['37,5×8', '', true], 37: ['60×8', '', true], 38: ['70×5', '', true], 39: ['62,5×8', '60×7'], 40: ['75×5', '', true], 41: ['65×8'], 42: ['42,5×8']
       }),
       ex('ausfallschritte', 'Ausfallschritte (KH)', '3×10/Seite', {
-        36: ['8×10'], 37: ['12×10', '12×8'], 38: ['12×10', 'ok'], 39: ['12×10'], 40: ['14×10', '14×8'], 41: ['13×10'], 42: ['8×10']
+        36: ['8×10', '', true], 37: ['12×10', '12×8'], 38: ['12×10', '', true], 39: ['12×10', '2x10x10'], 40: ['14×10', '14×8'], 41: ['13×10'], 42: ['8×10']
       }),
       ex('wadenheben', 'Wadenheben', '3×15', {
-        36: ['22,5×15'], 37: ['35×15', 'ok'], 38: ['40×15', 'ok'], 39: ['37,5×15'], 40: ['42,5×15', '45×15'], 41: ['42,5×15'], 42: ['25×15']
+        36: ['22,5×15', '', true], 37: ['35×15', '', true], 38: ['40×15', '', true], 39: ['37,5×15', '', true], 40: ['42,5×15', '45×15'], 41: ['42,5×15'], 42: ['25×15']
       }),
       ex('nacken-kh', 'Nacken KH', '2×12', {
-        36: ['20×12'], 37: ['30×12', 'ok'], 38: ['34×12', '34×10'], 39: ['30×12'], 40: ['34×12', '32×12'], 41: ['32×12'], 42: ['20×12']
+        36: ['20×12'], 37: ['30×12', '', true], 38: ['34×12', '34×10'], 39: ['30×12', '', true], 40: ['34×12', '32×12'], 41: ['32×12'], 42: ['20×12']
       })
     ]
   }
@@ -160,19 +180,22 @@ function seedDefaults() {
       if (!state[day.id][w]) state[day.id][w] = {};
       day.exercises.forEach(exo => {
         const existing = state[day.id][w][exo.key];
-        const orig = exo.weeks[w].ergebnis;
+        const wk = exo.weeks[w];
+        const orig = wk.ergebnis;
+        const origDone = wk.doneDefault;
         // Adopt the built-in default not just when nothing is stored yet,
         // but also when a blank/untouched placeholder is sitting there
-        // (e.g. after a data reset) and a real recorded value exists in
+        // (e.g. after a data reset) and a real recorded default exists in
         // code - that placeholder isn't something the user deliberately
         // entered, so it's safe to fill in.
         const isBlankPlaceholder = existing && !existing.ergebnis && !existing.done;
-        if (!existing || (isBlankPlaceholder && orig)) {
-          state[day.id][w][exo.key] = { ergebnis: orig, done: !!orig };
+        if (!existing || (isBlankPlaceholder && (orig || origDone))) {
+          state[day.id][w][exo.key] = { ergebnis: orig, done: origDone };
         }
       });
-      if (state[day.id][w].__notes === undefined) {
-        state[day.id][w].__notes = '';
+      if (state[day.id][w].__notes === undefined || state[day.id][w].__notes === '') {
+        const defaultNote = NOTES_DEFAULTS[day.id] && NOTES_DEFAULTS[day.id][w];
+        state[day.id][w].__notes = defaultNote || '';
       }
     });
   });
