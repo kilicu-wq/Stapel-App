@@ -57,6 +57,21 @@ html,body{
 }
 .toolbar-btn:hover{ color:var(--text); border-color:var(--text-faint); }
 
+.reset-order-btn{
+  display:block;
+  width:100%;
+  background:none;
+  border:1px dashed var(--border);
+  color:var(--text-faint);
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  padding:7px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  margin-bottom:12px;
+}
+.reset-order-btn:hover{ color:var(--text-dim); border-color:var(--text-faint); }
+
 .overlay{
   position:fixed;
   inset:0;

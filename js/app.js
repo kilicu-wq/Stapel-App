@@ -352,6 +352,10 @@ function render() {
   });
   html += `</div>`;
 
+  if (exerciseOrder[activeDay]) {
+    html += `<button class="reset-order-btn" id="reset-order-btn">Reihenfolge auf Plan-Standard zurücksetzen</button>`;
+  }
+
   html += `<div class="week-select-wrap" style="--wc:${wc}">
     <select id="week-select" class="week-select">`;
   WEEKS.forEach(w => {
@@ -561,6 +565,14 @@ function attachHandlers() {
   document.querySelectorAll('[data-action="move-down"]').forEach(el => {
     el.addEventListener('click', () => moveExercise(el.getAttribute('data-key'), 1));
   });
+  const resetOrderBtn = document.getElementById('reset-order-btn');
+  if (resetOrderBtn) {
+    resetOrderBtn.addEventListener('click', () => {
+      exerciseOrder[activeDay] = null;
+      persistOrder();
+      render();
+    });
+  }
   const notesInput = document.getElementById('notes-input');
   if (notesInput) {
     notesInput.addEventListener('input', () => {
